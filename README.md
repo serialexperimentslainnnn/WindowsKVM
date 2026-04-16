@@ -141,7 +141,7 @@ The passthrough GPU must be claimed by `vfio-pci` before `amdgpu` loads. This is
 <rom bar='on'/>
 ```
 
-Required on GPU VGA, GPU Audio, and xHCI controller. Without it, OVMF can't initialize the GPU and you get no display output.
+Required on GPU VGA, GPU Audio, and xHCI controller (This is just a PCI lane on my hardware holding 4 USB 3.0). Without it, OVMF can't initialize the GPU and you get no display output.
 
 ### 5. USB Controller passthrough — you need a dedicated IOMMU group
 
