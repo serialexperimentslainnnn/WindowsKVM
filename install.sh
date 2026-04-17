@@ -51,17 +51,23 @@ install_packages() {
 configure_iommu() {
     info "Configurando IOMMU en el kernel..."
 
-    local current_args
-    current_args=$(cat /proc/cmdline)
-
-    local needed_args="amd_iommu=on iommu=pt vfio-pci.ids=${GPU_VGA_ID},${GPU_AUDIO_ID}"
-
-    if echo "$current_args" | grep -q "amd_iommu=on" && echo "$current_args" | grep -q "vfio-pci.ids="; then
-        info "IOMMU y vfio-pci.ids ya estan en los parametros del kernel"
-    else
-        grubby --update-kernel=ALL --args="$needed_args"
-        info "Parametros del kernel actualizados: $needed_args"
+    # Limpieza: 'amd_iommu=on' no es una opcion valida (los valores aceptados
+    # son off/fullflush/force_isolation/force_enable). Versiones anteriores
+    # de este script la añadian; en kernels <7.0 era ignorada silenciosamente,
+    # pero en Linux 7.0 el parser rechaza el init de AMD-Vi al verla, dejando
+    # la IOMMU sin inicializar y VFIO sin funcionar. La eliminamos siempre.
+    if grubby --info=ALL 2>/dev/null | grep -q "amd_iommu=on"; then
+        grubby --update-kernel=ALL --remove-args='amd_iommu=on'
+        warn "Eliminado 'amd_iommu=on' (invalido) del cmdline de todos los kernels"
     fi
+
+    # AMD-Vi arranca por defecto si la CPU/BIOS soportan IOMMU.
+    # Solo necesitamos iommu=pt (passthrough) y el bind temprano de vfio-pci.
+    local needed_args="iommu=pt vfio-pci.ids=${GPU_VGA_ID},${GPU_AUDIO_ID}"
+
+    # grubby --args es idempotente: actualiza si cambia el valor, no duplica.
+    grubby --update-kernel=ALL --args="$needed_args"
+    info "Parametros del kernel asegurados: $needed_args"
 }
 
 configure_vfio() {

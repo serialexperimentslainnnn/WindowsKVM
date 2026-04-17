@@ -1,0 +1,29 @@
+module windowskvm 1.0;
+
+require {
+    type swtpm_t;
+    type svirt_t;
+    type svirt_image_t;
+    type virtqemud_tmp_t;
+    type pcscd_var_run_t;
+    class file { read write unlink open getattr };
+    class sock_file getattr;
+    class capability ipc_lock;
+}
+
+# swtpm setup creates a pidfile in virtqemud's tmp dir and then needs to
+# clean it up. Without this the vTPM cannot be (re)manufactured and Win11
+# fails to boot with "Could not start the TPM 2".
+allow swtpm_t virtqemud_tmp_t:file { read unlink open getattr };
+
+# swtpm writes persistent state (tpm2-00.permall) under the per-domain dir
+# that libvirt labels as svirt_image_t when the VM is associated.
+allow swtpm_t svirt_image_t:file { read write open getattr };
+
+# QEMU with device passthrough mlocks guest RAM; without ipc_lock the
+# VM fails to pin pages needed by VFIO.
+allow svirt_t self:capability ipc_lock;
+
+# QEMU probes the pcscd socket when a smartcard device is defined.
+# Harmless getattr noise — allowing it just to keep the audit log clean.
+allow svirt_t pcscd_var_run_t:sock_file getattr;

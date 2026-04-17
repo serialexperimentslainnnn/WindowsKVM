@@ -216,6 +216,35 @@ EOF
 }
 
 # =============================================================================
+# EXPLICIT HUGEPAGES (HugeTLB) — backing store para la VM win11
+# =============================================================================
+optimize_hugetlb() {
+    # La VM usa <memoryBacking><hugepages/></memoryBacking>; sin reserva
+    # QEMU falla con "unable to map backing store for guest RAM".
+    local vm_mem_gib=64
+    local hp_size_kb=2048
+    local nr_pages=$(( vm_mem_gib * 1024 * 1024 / hp_size_kb ))
+
+    info "Reservando ${nr_pages} hugepages de 2MB (${vm_mem_gib} GiB) para la VM..."
+
+    cat > /etc/sysctl.d/99-hugepages.conf <<EOF
+# ${vm_mem_gib} GiB reservados para VM win11 (${nr_pages} paginas x 2MB)
+# Tamaño debe coincidir con <memory> del domain.xml de la VM
+vm.nr_hugepages = ${nr_pages}
+EOF
+
+    sysctl -p /etc/sysctl.d/99-hugepages.conf
+
+    local got
+    got=$(cat /proc/sys/vm/nr_hugepages)
+    if [[ "$got" -lt "$nr_pages" ]]; then
+        warn "Solo se asignaron ${got}/${nr_pages} hugepages (fragmentacion). Persistido; tras reboot deberia completar."
+    else
+        info "Hugepages asignadas: ${got}"
+    fi
+}
+
+# =============================================================================
 # BTRFS OPTIMIZATIONS
 # =============================================================================
 optimize_btrfs() {
@@ -307,6 +336,7 @@ optimize_sysctl
 optimize_io
 optimize_cpu
 optimize_hugepages
+optimize_hugetlb
 optimize_btrfs
 optimize_services
 optimize_limits
@@ -320,7 +350,7 @@ echo ""
 echo "Cambios aplicados:"
 echo "  - Kernel: mitigations=off, nowatchdog, nohz_full, audit=0, split_lock_detect=off"
 echo "  - CPU: governor performance, C-states profundos desactivados"
-echo "  - Memory: swappiness=1, dirty pages optimizados, THP=madvise"
+echo "  - Memory: swappiness=1, dirty pages optimizados, THP=madvise, HugeTLB 64GiB"
 echo "  - I/O: NVMe=none scheduler, SATA=mq-deadline, read-ahead optimizado"
 echo "  - Network: TCP BBR, buffers ampliados, fastopen"
 echo "  - Btrfs: noatime"

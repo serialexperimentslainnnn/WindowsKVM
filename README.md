@@ -2,15 +2,34 @@
 
 Turn a Linux workstation into a high-performance Windows gaming VM with near-native GPU performance using PCI passthrough. This setup achieves **RTX 5090-class performance** with an AMD RX 9070 XT (~700€ GPU) thanks to FSR 4, AFMF, and zero-overhead passthrough.
 
-**Benchmarks (1440p, all maxed out):**
+**GPU Settings (RX 9070 XT Sapphire Nitro+):**
 
-| Game | Settings | FPS |
-|---|---|---|
-| Cyberpunk 2077 | Ray Tracing Overdrive + FSR 4 Quality + AFMF | 150-200 |
-| Cyberpunk 2077 | Ray Tracing Ultra + FSR Quality | 200-300 |
-| Monster Hunter Wilds | Max settings + FSR Quality | 220-250 |
-| Overwatch 2 | Max settings + Reduce Buffering | 260 (base) / 520 (AFMF, 3ms latency) |
-| Overwatch 2 | Min settings | 400 (base) / 800 (AFMF) |
+| Setting            | Value                                       |
+|--------------------|---------------------------------------------|
+| Model              | Sapphire Nitro+                             |
+| Power Settings     | Maximum                                     |
+| Clock Frequency    | +250 MHz                                    |
+| Undervolt          | -60 mV                                      |
+| RAM Clock          | 2700 MHz                                    |
+| Fan Curve          | Custom — 100% @ 60°C                        |
+| GPU Temp @ load    | 48°C                                        |
+| Memory Temp @ load | 58°C                                        |
+
+**Adrenalin advanced options:** every setting is forced via **"Override application settings"** at its maximum value, and every setting that exposes a quality tier is set to **Quality**.
+
+**Benchmarks (1440p):** FSR Sharpness is always set to 1 across all titles.
+
+| Game                 | Graphics Preset                 | FSR                     | AFMF                     | FPS     |
+|----------------------|---------------------------------|-------------------------|--------------------------|---------|
+| Cyberpunk 2077       | Ray Tracing Overdrive           | FSR 4 Quality           | Quality (~7 ms latency)  | 120-140 |
+| Cyberpunk 2077       | Ray Tracing Overdrive           | FSR 4 Ultra Performance | Quality (4-5 ms latency) | 250-300 |
+| Cyberpunk 2077       | Ray Tracing Ultra               | FSR 4 Quality           | Quality (4-5 ms latency) | 250-300 |
+| Borderlands 4        | Badass                          | FSR Quality             | Quality (4-5 ms latency) | 210-220 |
+| Monster Hunter Wilds | Max Settings + Ray Tracing Max  | FSR Quality             | Quality (4-5 ms latency) | 240-280 |
+| Doom The Dark Ages   | UltraNightmare, no Path Tracing | FSR Quality             | Quality (4-5 ms latency) | 370-400 |
+| Doom The Dark Ages   | UltraNightmare, Path Tracing    | FSR Ultra Performance   | Quality (4-5 ms latency) | 230-270 |
+| Overwatch 2          | Epic + Reduced Buffering        | FSR 2.0                 | Disabled                 | 260-280 |
+| Overwatch 2          | Epic + Reduced Buffering        | FSR 2.0                 | Quality (2-3 ms latency) | 400-420 |
 
 ## Hardware
 
@@ -22,9 +41,9 @@ Turn a Linux workstation into a high-performance Windows gaming VM with near-nat
 | Host GPU | AMD RX 7700 XT (handles Linux desktop — any cheap GPU works, it just needs to run a desktop) |
 | Passthrough GPU | AMD RX 9070 XT Sapphire Nitro+ (dedicated to VM) |
 | USB Controller | AMD xHCI (11:00.3) — dedicated IOMMU group |
-| Storage | 2x NVMe 1TB + 8x SATA SSD 1TB (btrfs, 10 devices) |
+| Storage | 2x NVMe 1TB + 8x SATA SSD 1TB (btrfs RAID 10, 10 devices) |
 | Monitor | 2K 165Hz FreeSync (DisplayPort) |
-| OS | Fedora 44 (host) / Windows 11 Pro (VM) |
+| OS | Fedora 45 Rawhide — kernel 7.0.0-62.fc45.x86_64 (host) / Windows 11 Pro (VM) |
 
 ## VM Specs
 
